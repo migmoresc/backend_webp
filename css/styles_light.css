@@ -95,7 +95,7 @@ img {
 }
 
 span {
-    display: block;
+    display: none;
     color: red;
     size: 1.5em;
 }
@@ -116,6 +116,22 @@ span {
     flex-flow: row nowrap;
     justify-content: center;
     margin-top: 8px;
+    align-items: center;
+}
+
+.listado_ficheros>div {
+    border: 1px solid black;
+    width: 100%;
+}
+
+.listado_ficheros>div>span {
+    display: block;
+    color: black;
+}
+
+.visualizacion>img {
+    width: 200px;
+    height: auto;
 }
 
 /* 

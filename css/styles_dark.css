@@ -96,7 +96,7 @@ img {
 }
 
 span {
-    display: block;
+    display: none;
     color: red;
     size: 1.5em;
 }

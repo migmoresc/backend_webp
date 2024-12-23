@@ -2,5 +2,7 @@
     "ficheros": "Select the files xxx",
     "calidad": "Quality (number between 1 and 99) xxx",
     "convertir": "Convert xxx",
-    "descargar": "Download xxx"
+    "descargar": "Download xxx",
+    "error_ficheros": "1 file has to be selected at least.",
+    "error_calidad": "The quality must be between 1 and 99"
 }
