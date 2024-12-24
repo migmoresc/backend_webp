@@ -86,32 +86,73 @@ function convertir() {
     const formData = new FormData();
 
     if (comprobarEntradas()) {
+
+        document.getElementsByClassName("visualizacion")[0].style.display = "flex";
+        document.getElementsByClassName("procesando")[0].style.display = "block";
+        document.getElementById("div_ficheros").innerHTML = "";
+        document.querySelectorAll(".visualizacion>img").forEach(e => e.src = "");
         // Append all selected files to FormData
         for (const file of fileInput.files) {
             formData.append('files[]', file); // 'files[]' allows sending multiple files
         }
+        const jsonData = JSON.stringify({ calidad: parseInt(document.getElementById("calidad").value) });
+        formData.append('json', jsonData);
+
         // Send the FormData to the server
         fetch('http://localhost/backend_webp/index.php', {
             method: 'POST',
             body: formData
         }).then(response => response.json())
             .then(respuesta => {
+                document.getElementsByClassName("procesando")[0].style.display = "none";
+                document.getElementsByClassName("listado_ficheros")[0].style.display = "flex";
+
                 respuesta.forEach(e => {
                     const a = document.createElement("span");
                     a.innerText = e["nombre"];
                     a.addEventListener("click", () => {
-                        mostrarImagen(e["nombre"]);
+                        mostrarImagen(e["nombre"], e["size_original"], e["size_webp"]);
                     });
-
                     document.getElementById("div_ficheros").append(a);
 
                 });
+                document.querySelector("#div_ficheros>span").click();
+                document.querySelector(".pesos.containerx").style.display = "flex";
             })
             .catch(error => console.error('Error:', error));
     }
 }
 
-function mostrarImagen(nombre) {
+function mostrarImagen(nombre, size_original, size_webp) {
     console.log(nombre);
-
+    document.querySelectorAll(".peso")[0].innerHTML = parseInt(parseInt(size_original) / 1024).toLocaleString('en-US').replace(/,/g, '.') + " Kbytes";
+    document.querySelectorAll(".peso")[1].innerHTML = parseInt(parseInt(size_webp) / 1024).toLocaleString('en-US').replace(/,/g, '.') + " Kbytes";
+    document.querySelectorAll(".visualizacion>div>img")[0].src = `uploads/${nombre}`;
+    nombre = nombre.split(".")[0] + ".webp";
+    document.querySelectorAll(".visualizacion>div>img")[1].src = `uploads/${nombre}`;
 }
+
+function descargar() {
+    let nombresFicheros = [];
+
+
+    document.querySelectorAll("#div_ficheros>span").forEach((e) => nombresFicheros.push(e.innerText));
+    const cuerpo = JSON.stringify({ accion: "descargar", nombres: nombresFicheros });
+    console.log(cuerpo);
+
+    fetch('http://localhost/backend_webp/index.php', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: cuerpo
+    }).then(response => response.blob()).then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'files.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    });
+}
+
+document.querySelector(".descargar>input").addEventListener("click", descargar);

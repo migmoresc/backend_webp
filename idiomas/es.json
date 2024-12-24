@@ -4,5 +4,7 @@
     "convertir": "Convertir xxx",
     "descargar": "Descargar xxx",
     "error_ficheros": "Se tiene que seleccionar al menos 1 archivo.",
-    "error_calidad": "La calidad tiene que estar entre 1 y 99"
+    "error_calidad": "La calidad tiene que estar entre 1 y 99",
+    "procesando": "Se están convirtiendo los archivos",
+    "1minuto": "Tienes 1 minuto para pulsar en descargar, los archivos se eliminarán después de este tiempo"
 }

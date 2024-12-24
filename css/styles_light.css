@@ -100,11 +100,8 @@ span {
     size: 1.5em;
 }
 
-#listado_ficheros {
-    field-sizing: content;
-    width: 100%;
-    height: 100%;
-    resize: none;
+#listado_ficheros>div>span {
+    cursor: default;
 }
 
 .entrada_ficheros,
@@ -119,6 +116,42 @@ span {
     align-items: center;
 }
 
+.listado_ficheros {
+    display: none;
+    cursor: default;
+}
+
+.containerx {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.visualizacion {
+    display: none;
+    flex-flow: column nowrap;
+}
+
+.visualizacion>div>span {
+    color: black;
+    font-size: 16px;
+}
+
+.visualizacion>div {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.peso {
+    display: block;
+    padding: 8px;
+}
+
+.listado_ficheros {
+    min-height: 24px;
+}
+
 .listado_ficheros>div {
     border: 1px solid black;
     width: 100%;
@@ -129,9 +162,20 @@ span {
     color: black;
 }
 
-.visualizacion>img {
-    width: 200px;
+.procesando {
+    display: none;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.procesando>p {
+    font-size: 32px;
+}
+
+.visualizacion>div>img {
+    width: 50%;
     height: auto;
+    padding: 8px;
 }
 
 /* 

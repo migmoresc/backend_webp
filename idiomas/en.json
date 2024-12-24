@@ -4,5 +4,7 @@
     "convertir": "Convert xxx",
     "descargar": "Download xxx",
     "error_ficheros": "1 file has to be selected at least.",
-    "error_calidad": "The quality must be between 1 and 99"
+    "error_calidad": "The quality must be between 1 and 99",
+    "procesando": "Files are being converted",
+    "1minuto": "You have 1 minute to press on download, files will be deleted after this time"
 }

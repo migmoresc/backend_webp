@@ -1,35 +1,6 @@
 <?php
-function convertToWebp($inputFile, $outputFile)
-{
-    $image = imagecreatefromstring(file_get_contents($inputFile));
-
-    // Check if EXIF extension is available
-    if (function_exists('exif_read_data')) {
-        $exif = @exif_read_data($inputFile);
-
-        if (isset($exif['Orientation'])) {
-            switch ($exif['Orientation']) {
-                case 3: // Rotate 180 degrees
-                    $image = imagerotate($image, 180, 0);
-                    break;
-                case 6: // Rotate 90 degrees clockwise
-                    $image = imagerotate($image, -90, 0);
-                    break;
-                case 8: // Rotate 90 degrees counterclockwise
-                    $image = imagerotate($image, 90, 0);
-                    break;
-            }
-        }
-    }
-    imagewebp($image, $outputFile, 80); // 80 is the quality
-    // imagedestroy($image);
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
-
-    if (isset($_FILES["files"])) {
-        // Directory to save uploaded files
+    if (isset($_FILES["files"]) && isset($_POST["json"])) {
         $uploadDir = 'uploads/';
 
         // Ensure the upload directory exists
@@ -58,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $safeFileName = preg_replace("/[^a-zA-Z0-9.-_]/", "", $fileName);
                     $filePath = $uploadDir . basename($safeFileName);
                     if (move_uploaded_file($fileTmpName, $filePath)) {
-
-                        convertToWebp($filePath, $uploadDir . pathinfo($safeFileName)["filename"] . ".webp");
-                        array_push($ficheros, ['nombre' => $safeFileName, 'url' => $filePath]);
+                        $jsonData = json_decode($_POST['json'], true);
+                        $fileSizeWebp = convertToWebp($filePath, $uploadDir . pathinfo($safeFileName)["filename"] . ".webp", $jsonData["calidad"]);
+                        array_push($ficheros, ['nombre' => $safeFileName, 'url' => $filePath, "size_original" => $fileSize, "size_webp" => $fileSizeWebp]);
                     } else {
                         echo json_encode("Error uploading file '$fileName'.\n");
                     }
@@ -72,8 +43,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo json_encode("No files uploaded.");
         }
+    } else {
+        // Check if the Content-Type is application/json
+        if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') === 0) {
+            // Get the raw POST data
+            $rawInput = file_get_contents('php://input');
+
+            // Attempt to decode the JSON
+            $jsonData = json_decode($rawInput, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && isset($jsonData["accion"]) && $jsonData["accion"] === "descargar") {
+                $files = [];
+                foreach ($jsonData["nombres"] as $key => $value) {
+                    array_push($files, "uploads/" . explode(".", $value)[0] . ".webp");
+                }
+
+                $zip = new ZipArchive();
+                $zipFile = 'files.zip';
+
+                // Create ZIP file
+                if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                    foreach ($files as $file) {
+                        if (file_exists($file)) {
+                            $zip->addFile($file, basename($file));
+                        }
+                    }
+                    $zip->close();
+
+                    // Send ZIP file as a response
+                    header('Content-Type: application/zip');
+                    header('Content-Disposition: attachment; filename="files.zip"');
+                    header('Content-Length: ' . filesize($zipFile));
+                    readfile($zipFile);
+
+                    // Clean up
+                    unlink($zipFile);
+                } else {
+                    echo 'Failed to create ZIP file.';
+                }
+            } else {
+                // JSON decoding failed
+                echo "Invalid JSON received.\n";
+            }
+        }
     }
     exit;
+}
+
+function convertToWebp($inputFile, $outputFile, $calidad)
+{
+    $image = imagecreatefromstring(file_get_contents($inputFile));
+
+    // Check if EXIF extension is available
+    if (function_exists('exif_read_data')) {
+        $exif = @exif_read_data($inputFile);
+
+        if (isset($exif['Orientation'])) {
+            switch ($exif['Orientation']) {
+                case 3: // Rotate 180 degrees
+                    $image = imagerotate($image, 180, 0);
+                    break;
+                case 6: // Rotate 90 degrees clockwise
+                    $image = imagerotate($image, -90, 0);
+                    break;
+                case 8: // Rotate 90 degrees counterclockwise
+                    $image = imagerotate($image, 90, 0);
+                    break;
+            }
+        }
+    }
+    imagewebp($image, $outputFile, $calidad);
+    imagedestroy($image);
+    return filesize($outputFile);
 }
 ?>
 <!DOCTYPE html>
@@ -118,12 +159,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="convertir box">
                 <label for="calidad" data-translate="calidad">Calidad:</label>
-                <input type="number" id="calidad" min="1" max="99" value="80" style="text-align: right" ;>
+                <input type="number" id="calidad" min="1" max="99" value="50" style="text-align: right" ;>
                 <input type="button" id="boton_convertir" value="Convertir" data-translate="convertir">
                 <span id="error_calidad" data-translate="error_calidad"></span>
             </div>
+            <div class="procesando">
+                <p data-translate="procesando"></p>
+                <p data-translate="1minuto"></p>
+            </div>
             <div class="visualizacion box">
-
+                <div class="pesos containerx">
+                    <span class="peso"></span>
+                    <span class="peso"></span>
+                </div>
+                <div>
+                    <img src="" alt="">
+                    <img src="" alt="">
+                </div>
             </div>
             <div class="descargar box">
                 <input type="button" data-translate="descargar" value="Descargar">
